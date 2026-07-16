@@ -1,0 +1,35 @@
+server:
+  port: ${SERVER_PORT:8082}
+
+spring:
+  application:
+    name: application-service
+  data:
+    mongodb:
+      uri: ${SPRING_DATA_MONGODB_URI:mongodb://localhost:27017/tracker}
+      auto-index-creation: false   # indexes are created explicitly by MongoIndexInitializer
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST:localhost}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+
+jwt:
+  secret: ${JWT_SECRET:change-me-in-prod-this-must-be-at-least-32-bytes-long}
+
+s3:
+  endpoint: ${S3_ENDPOINT:http://localhost:4566}   # empty/blank => real AWS
+  bucket: ${S3_BUCKET:application-copies}
+  region: ${AWS_REGION:us-east-1}
+  presign-ttl-seconds: ${S3_PRESIGN_TTL_SECONDS:900}
+
+sidebar:
+  cache-ttl-seconds: 300
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+logging:
+  level:
+    com.tracker: INFO

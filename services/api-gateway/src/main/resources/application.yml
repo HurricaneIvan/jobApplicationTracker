@@ -1,0 +1,84 @@
+server:
+  port: ${SERVER_PORT:8080}
+
+  # --- TLS termination (PRODUCTION ONLY — DISABLED for local dev) ------------------
+  # In production, TLS terminates HERE at the gateway; downstream services speak plain
+  # HTTP on the internal network. Do NOT commit real certificates. To enable, provide a
+  # keystore via env (TLS_KEYSTORE_PATH / TLS_KEYSTORE_PASSWORD) and uncomment the block
+  # below (and change server.port to 8443). Left commented so local dev stays on HTTP:8080.
+  #
+  # ssl:
+  #   enabled: true
+  #   key-store: ${TLS_KEYSTORE_PATH:/etc/tls/gateway.p12}
+  #   key-store-password: ${TLS_KEYSTORE_PASSWORD:changeit}
+  #   key-store-type: PKCS12
+
+spring:
+  application:
+    name: api-gateway
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST:localhost}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+
+  cloud:
+    gateway:
+      # CORS is configured programmatically in config/CorsConfig (needs allowedOriginPatterns
+      # for chrome-extension:// origins), so it is intentionally NOT set here.
+      routes:
+        # ---- auth-service: public, no JWT required (login/refresh mint tokens) ----
+        - id: auth-service
+          uri: ${AUTH_SERVICE_URI:http://localhost:8081}
+          predicates:
+            - Path=/api/v1/auth/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                # For auth routes the key resolver falls back to client IP (no user yet).
+                key-resolver: "#{@userKeyResolver}"
+                redis-rate-limiter.replenishRate: ${RATE_LIMIT_REPLENISH_RATE:2}
+                redis-rate-limiter.burstCapacity: ${RATE_LIMIT_BURST_CAPACITY:120}
+
+        # ---- application-service: JWT required (validated by the global filter) ----
+        - id: application-service
+          uri: ${APPLICATION_SERVICE_URI:http://localhost:8082}
+          predicates:
+            - Path=/api/v1/applications/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                key-resolver: "#{@userKeyResolver}"
+                redis-rate-limiter.replenishRate: ${RATE_LIMIT_REPLENISH_RATE:2}
+                redis-rate-limiter.burstCapacity: ${RATE_LIMIT_BURST_CAPACITY:120}
+
+        # ---- portal-registry-service: JWT required ----
+        - id: portal-registry-service
+          uri: ${PORTAL_SERVICE_URI:http://localhost:8083}
+          predicates:
+            - Path=/api/v1/portals/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                key-resolver: "#{@userKeyResolver}"
+                redis-rate-limiter.replenishRate: ${RATE_LIMIT_REPLENISH_RATE:2}
+                redis-rate-limiter.burstCapacity: ${RATE_LIMIT_BURST_CAPACITY:120}
+
+# Shared HS256 secret (per CONTRACT.md) — must match auth-service.
+jwt:
+  secret: ${JWT_SECRET:change-me-in-prod-this-must-be-at-least-32-bytes-long}
+
+# Rate limiting. RedisRateLimiter is created programmatically from requests-per-minute
+# in config/RateLimitConfig; the replenish/burst env vars above are the yaml fallbacks
+# used by the RequestRateLimiter filter's own defaults (replenishRate ~= RPM / 60).
+rate-limit:
+  requests-per-minute: ${RATE_LIMIT_REQUESTS_PER_MINUTE:120}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway
+
+logging:
+  level:
+    com.tracker: INFO

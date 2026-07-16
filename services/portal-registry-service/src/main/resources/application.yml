@@ -1,0 +1,23 @@
+server:
+  port: ${SERVER_PORT:8083}
+
+spring:
+  application:
+    name: portal-registry-service
+  data:
+    mongodb:
+      uri: ${SPRING_DATA_MONGODB_URI:mongodb://localhost:27017/tracker}
+      auto-index-creation: false   # indexes are created explicitly by MongoIndexInitializer
+
+jwt:
+  secret: ${JWT_SECRET:change-me-in-prod-this-must-be-at-least-32-bytes-long}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+logging:
+  level:
+    com.tracker: INFO

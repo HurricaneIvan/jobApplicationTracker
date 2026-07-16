@@ -1,0 +1,45 @@
+{
+  "manifest_version": 3,
+  "name": "Job Application Tracker",
+  "version": "0.1.0",
+  "description": "Capture job postings and detect new portals. Reads only visible page metadata (Open Graph / meta tags) — never cookies or credentials.",
+
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting",
+    "alarms"
+  ],
+
+  "host_permissions": [
+    "http://localhost:8080/*",
+    "<all_urls>"
+  ],
+  "_comment_host_permissions": "http://localhost:8080/* is the backend gateway. <all_urls> lets the content script read visible metadata on any job page; this could be narrowed to a curated portal list once the known-portal domains are stable.",
+
+  "background": {
+    "service_worker": "background.js"
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Job Application Tracker"
+  },
+
+  "_comment_externally_connectable": "TODO: replace http://localhost:5173/* with the deployed web-app origin. The web app calls chrome.runtime.sendMessage(EXTENSION_ID, {type:'SET_JWT', jwt}) after login to bridge the JWT into the extension. http://localhost:5173/* is the local Vite dev server.",
+  "externally_connectable": {
+    "matches": [
+      "http://localhost:5173/*"
+    ]
+  },
+
+  "_comment_icons": "Icons are optional for local development. To ship, add PNGs and an \"icons\" key, e.g. \"icons\": { \"128\": \"icons/icon128.png\" } and an \"action.default_icon\"."
+}

@@ -1,0 +1,28 @@
+server:
+  port: ${SERVER_PORT:8084}
+
+spring:
+  application:
+    name: archival-worker
+  data:
+    mongodb:
+      # Shared `tracker` database. The `applications` collection is OWNED by
+      # application-service; this worker only flips archival flags on it.
+      uri: ${SPRING_DATA_MONGODB_URI:mongodb://localhost:27017/tracker}
+      auto-index-creation: false
+
+archival:
+  # Completed tiles older than this many days are archived.
+  archive-after-days: ${ARCHIVE_AFTER_DAYS:7}
+  # Sweep cadence — 6-field Spring cron. Default: hourly, on the hour.
+  cron: ${ARCHIVAL_CRON:0 0 * * * *}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+logging:
+  level:
+    com.tracker: INFO

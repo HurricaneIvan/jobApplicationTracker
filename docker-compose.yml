@@ -1,0 +1,135 @@
+# Local dev stack for Job Application Tracker.
+# Brings up: Postgres, Mongo, Redis, LocalStack (S3), and all Spring Boot services.
+# The frontend (Vite) and the extension run outside compose during development.
+#
+#   docker compose up --build
+#
+services:
+  # ---------------------------------------------------------------- infra ----
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: auth
+      POSTGRES_USER: tracker
+      POSTGRES_PASSWORD: tracker
+    ports: ["5432:5432"]
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tracker -d auth"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  mongo:
+    image: mongo:7
+    ports: ["27017:27017"]
+    volumes:
+      - mongodata:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # LocalStack provides a local S3 endpoint. The init script creates the bucket.
+  localstack:
+    image: localstack/localstack:3
+    ports: ["4566:4566"]
+    environment:
+      SERVICES: s3
+      DEBUG: "0"
+    volumes:
+      - "./infra/localstack-init:/etc/localstack/init/ready.d"
+    healthcheck:
+      test: ["CMD-SHELL", "awslocal s3 ls s3://application-copies || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  # -------------------------------------------------------------- services ----
+  auth-service:
+    build: ./services/auth-service
+    depends_on:
+      postgres: { condition: service_healthy }
+    environment:
+      SERVER_PORT: 8081
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/auth
+      SPRING_DATASOURCE_USERNAME: tracker
+      SPRING_DATASOURCE_PASSWORD: tracker
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-prod-this-must-be-at-least-32-bytes-long}
+      JWT_ACCESS_TTL_SECONDS: 900
+      JWT_REFRESH_TTL_SECONDS: 1209600
+    ports: ["8081:8081"]
+
+  application-service:
+    build: ./services/application-service
+    depends_on:
+      mongo: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      localstack: { condition: service_healthy }
+    environment:
+      SERVER_PORT: 8082
+      SPRING_DATA_MONGODB_URI: mongodb://mongo:27017/tracker
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-prod-this-must-be-at-least-32-bytes-long}
+      AWS_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      S3_ENDPOINT: http://localstack:4566
+      S3_BUCKET: application-copies
+      S3_PRESIGN_TTL_SECONDS: 900
+    ports: ["8082:8082"]
+
+  portal-registry-service:
+    build: ./services/portal-registry-service
+    depends_on:
+      mongo: { condition: service_healthy }
+    environment:
+      SERVER_PORT: 8083
+      SPRING_DATA_MONGODB_URI: mongodb://mongo:27017/tracker
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-prod-this-must-be-at-least-32-bytes-long}
+    ports: ["8083:8083"]
+
+  archival-worker:
+    build: ./services/archival-worker
+    depends_on:
+      mongo: { condition: service_healthy }
+    environment:
+      SERVER_PORT: 8084
+      SPRING_DATA_MONGODB_URI: mongodb://mongo:27017/tracker
+      ARCHIVE_AFTER_DAYS: 7
+    ports: ["8084:8084"]
+
+  api-gateway:
+    build: ./services/api-gateway
+    depends_on:
+      redis: { condition: service_healthy }
+      auth-service: { condition: service_started }
+      application-service: { condition: service_started }
+      portal-registry-service: { condition: service_started }
+    environment:
+      SERVER_PORT: 8080
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-prod-this-must-be-at-least-32-bytes-long}
+      AUTH_SERVICE_URI: http://auth-service:8081
+      APPLICATION_SERVICE_URI: http://application-service:8082
+      PORTAL_SERVICE_URI: http://portal-registry-service:8083
+      # Redis backs the distributed rate limiter.
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      RATE_LIMIT_REQUESTS_PER_MINUTE: 120
+    ports: ["8080:8080"]
+
+volumes:
+  pgdata:
+  mongodata:
