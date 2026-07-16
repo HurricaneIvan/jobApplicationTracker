@@ -9,6 +9,7 @@ import org.springframework.data.mongodb.core.index.Index;
 import org.springframework.data.mongodb.core.index.IndexOperations;
 import org.springframework.data.mongodb.core.index.PartialIndexFilter;
 import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.schema.JsonSchemaObject.Type;
 import org.springframework.stereotype.Component;
 
 /**
@@ -31,14 +32,16 @@ public class MongoIndexInitializer {
         // { applicationId: 1 } UNIQUE
         ops.ensureIndex(new Index().on("applicationId", Direction.ASC).unique());
 
-        // { userId, portalId, externalJobId } UNIQUE  where externalJobId exists && != null
+        // { userId, portalId, externalJobId } UNIQUE  where externalJobId exists && != null.
+        // MongoDB forbids $ne in a partialFilterExpression, so express "present and non-null"
+        // as $type: "string" — a null value has BSON type null, not string, so it is excluded.
         ops.ensureIndex(new Index()
                 .on("userId", Direction.ASC)
                 .on("portalId", Direction.ASC)
                 .on("externalJobId", Direction.ASC)
                 .unique()
                 .partial(PartialIndexFilter.of(
-                        Criteria.where("externalJobId").exists(true).ne(null))));
+                        Criteria.where("externalJobId").type(Type.STRING))));
 
         // { userId, portalId, jobUrl } UNIQUE  where externalJobId == null
         ops.ensureIndex(new Index()
