@@ -1,5 +1,7 @@
 :root {
-  /* Atlassian / Jira palette */
+  /* Atlassian / Jira palette (default "Light" theme). Themes override these vars via
+     [data-theme="..."] selectors below — most colors route through them so a theme
+     only needs to redefine variables, not restyle every element. */
   --bg: #f4f5f7;
   --surface: #ffffff;
   --border: #dfe1e6;
@@ -7,8 +9,16 @@
   --muted: #5e6c84;
   --primary: #0052cc;
   --primary-hover: #0747a6;
+  --primary-contrast: #ffffff;
   --danger: #de350b;
   --column-bg: #ebecf0;
+  --input-bg: #ffffff;
+  --hover-bg: #f0f1f4;
+  --badge-bg: #eef2ff;
+  --badge-text: #4338ca;
+  --count-bg: #d5d8de;
+  --count-text: #374151;
+  --heading: #374151;
   --shadow: 0 1px 1px rgba(9, 30, 66, 0.25), 0 0 1px rgba(9, 30, 66, 0.31);
   --shadow-raised: 0 4px 8px rgba(9, 30, 66, 0.25), 0 0 1px rgba(9, 30, 66, 0.31);
   --sidebar-w: 300px;
@@ -47,7 +57,7 @@ body {
   transition: background 0.12s, border-color 0.12s;
 }
 .btn:hover:not(:disabled) {
-  background: #f0f1f4;
+  background: var(--hover-bg);
 }
 .btn:disabled {
   opacity: 0.5;
@@ -56,7 +66,7 @@ body {
 .btn-primary {
   background: var(--primary);
   border-color: var(--primary);
-  color: #fff;
+  color: var(--primary-contrast);
 }
 .btn-primary:hover:not(:disabled) {
   background: var(--primary-hover);
@@ -114,7 +124,7 @@ textarea {
   padding: 7px 9px;
   border: 1px solid var(--border);
   border-radius: 6px;
-  background: #fff;
+  background: var(--input-bg);
   color: var(--text);
   width: 100%;
 }
@@ -303,11 +313,11 @@ textarea {
   margin: 0;
   text-transform: uppercase;
   letter-spacing: 0.03em;
-  color: #374151;
+  color: var(--heading);
 }
 .count {
-  background: #d5d8de;
-  color: #374151;
+  background: var(--count-bg);
+  color: var(--count-text);
   border-radius: 10px;
   padding: 1px 8px;
   font-size: 12px;
@@ -356,7 +366,7 @@ textarea {
 }
 .tile-clickable:hover {
   box-shadow: var(--shadow-raised);
-  border-color: #c1c7d0;
+  border-color: var(--border);
 }
 .tile-busy {
   opacity: 0.6;
@@ -388,9 +398,9 @@ textarea {
   flex-wrap: wrap;
 }
 .portal-badge {
-  background: #eef2ff;
-  color: #4338ca;
-  border: 1px solid #e0e7ff;
+  background: var(--badge-bg);
+  color: var(--badge-text);
+  border: 1px solid transparent;
   border-radius: 10px;
   padding: 1px 8px;
   font-size: 11px;
@@ -445,12 +455,12 @@ textarea {
   white-space: nowrap;
 }
 .chip-applied {
-  background: #dfe1e6;
-  color: #42526e;
-}
-.chip-in_progress {
   background: #deebff;
   color: #0747a6;
+}
+.chip-in_progress {
+  background: #fff0cc;
+  color: #974f0c;
 }
 .chip-complete {
   background: #e3fcef;
@@ -526,7 +536,7 @@ textarea {
   width: 100%;
   border: none;
   border-bottom: 1px solid var(--border);
-  background: #f7f8fa;
+  background: var(--hover-bg);
   cursor: pointer;
   padding: 8px;
   font-size: 16px;
@@ -583,7 +593,7 @@ textarea {
 }
 .si-portal {
   font-size: 11px;
-  color: #4338ca;
+  color: var(--badge-text);
 }
 
 /* ---------- Sidebar advanced filter ---------- */
@@ -601,7 +611,7 @@ textarea {
   margin-bottom: 12px;
   border: 1px solid var(--border);
   border-radius: 8px;
-  background: #f7f8fa;
+  background: var(--hover-bg);
 }
 .sidebar-advanced label {
   display: flex;
@@ -714,4 +724,160 @@ textarea {
   background: #ecfdf5;
   color: #047857;
   border: 1px solid #a7f3d0;
+}
+
+/* =====================================================================
+   Themes — selected via the Theme dropdown; applied as data-theme on <html>.
+   Each block only overrides variables (plus a couple of structural tweaks).
+   Status lozenge colors stay semantic across all themes.
+   ===================================================================== */
+
+/* ---- Night Mode ---- */
+:root[data-theme='night'] {
+  --bg: #1d2125;
+  --surface: #22272b;
+  --border: #3c444d;
+  --text: #c7d1db;
+  --muted: #9aa4b0;
+  --primary: #4c9aff;
+  --primary-hover: #85b8ff;
+  --primary-contrast: #0b1215;
+  --danger: #ff6b5b;
+  --column-bg: #282e33;
+  --input-bg: #1d2125;
+  --hover-bg: #2c333a;
+  --badge-bg: #1c2b41;
+  --badge-text: #9dc0ff;
+  --count-bg: #3c444d;
+  --count-text: #c7d1db;
+  --heading: #9aa4b0;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-raised: 0 4px 10px rgba(0, 0, 0, 0.55);
+}
+
+/* ---- High Contrast ---- */
+:root[data-theme='contrast'] {
+  --bg: #ffffff;
+  --surface: #ffffff;
+  --border: #000000;
+  --text: #000000;
+  --muted: #1a1a1a;
+  --primary: #0000cc;
+  --primary-hover: #000099;
+  --primary-contrast: #ffffff;
+  --danger: #cc0000;
+  --column-bg: #ffffff;
+  --input-bg: #ffffff;
+  --hover-bg: #e6e6e6;
+  --badge-bg: #000000;
+  --badge-text: #ffffff;
+  --count-bg: #000000;
+  --count-text: #ffffff;
+  --heading: #000000;
+  --shadow: 0 0 0 1px #000000;
+  --shadow-raised: 0 0 0 2px #000000;
+}
+:root[data-theme='contrast'] .tile,
+:root[data-theme='contrast'] .column {
+  border: 2px solid #000000;
+}
+
+/* ---- Monochrome: Blue ---- */
+:root[data-theme='blue'] {
+  --bg: #eef4ff;
+  --surface: #ffffff;
+  --border: #b6ccf5;
+  --text: #0b2b63;
+  --muted: #3f5a8a;
+  --primary: #1d5fd6;
+  --primary-hover: #154bad;
+  --primary-contrast: #ffffff;
+  --danger: #b3261e;
+  --column-bg: #dbe7ff;
+  --input-bg: #ffffff;
+  --hover-bg: #dbe7ff;
+  --badge-bg: #d3e2ff;
+  --badge-text: #154bad;
+  --count-bg: #c3d6f7;
+  --count-text: #0b2b63;
+  --heading: #274d8a;
+}
+
+/* ---- Monochrome: Green ---- */
+:root[data-theme='green'] {
+  --bg: #edf7ef;
+  --surface: #ffffff;
+  --border: #aed9b8;
+  --text: #0d3b1e;
+  --muted: #3d6b4c;
+  --primary: #2f8f46;
+  --primary-hover: #246e37;
+  --primary-contrast: #ffffff;
+  --danger: #b3261e;
+  --column-bg: #d8efdd;
+  --input-bg: #ffffff;
+  --hover-bg: #d8efdd;
+  --badge-bg: #d3eddb;
+  --badge-text: #246e37;
+  --count-bg: #c3e3cb;
+  --count-text: #0d3b1e;
+  --heading: #2b6b41;
+}
+
+/* ---- Monochrome: Purple ---- */
+:root[data-theme='purple'] {
+  --bg: #f3eefb;
+  --surface: #ffffff;
+  --border: #cdb6ef;
+  --text: #341066;
+  --muted: #5c3f8a;
+  --primary: #7a3fd0;
+  --primary-hover: #5f2fa8;
+  --primary-contrast: #ffffff;
+  --danger: #b3261e;
+  --column-bg: #e7dcf7;
+  --input-bg: #ffffff;
+  --hover-bg: #e7dcf7;
+  --badge-bg: #e2d5f7;
+  --badge-text: #5f2fa8;
+  --count-bg: #dac7f2;
+  --count-text: #341066;
+  --heading: #4d2b8a;
+}
+
+/* ---- Monochrome: Pink ---- */
+:root[data-theme='pink'] {
+  --bg: #fdeef5;
+  --surface: #ffffff;
+  --border: #f2b6d2;
+  --text: #5c0f38;
+  --muted: #8a3f63;
+  --primary: #c23f86;
+  --primary-hover: #a02f6c;
+  --primary-contrast: #ffffff;
+  --danger: #b3261e;
+  --column-bg: #f8dcea;
+  --input-bg: #ffffff;
+  --hover-bg: #f8dcea;
+  --badge-bg: #f7d5e7;
+  --badge-text: #a02f6c;
+  --count-bg: #f2c7dc;
+  --count-text: #5c0f38;
+  --heading: #8a2b63;
+}
+
+/* Theme dropdown control in the topbar. */
+.theme-select {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: auto;
+}
+.theme-select > span {
+  color: var(--muted);
+  font-size: 13px;
+}
+.theme-select select {
+  min-width: 130px;
+  width: auto;
 }

@@ -4,6 +4,7 @@ import { api, ApiError } from '../api/client';
 import { useAuth } from '../hooks/useAuth.jsx';
 import Tile from '../components/Tile.jsx';
 import Sidebar from '../components/Sidebar.jsx';
+import ThemeSelect from '../components/ThemeSelect.jsx';
 
 const COLUMNS = [
   { key: 'applied', title: 'Applied', bucket: 'applied' },
@@ -125,6 +126,7 @@ export default function BoardPage() {
                 ))}
               </select>
             </label>
+            <ThemeSelect />
             <button className="btn btn-primary" onClick={() => setShowCreate((s) => !s)}>
               {showCreate ? 'Close' : '+ New'}
             </button>

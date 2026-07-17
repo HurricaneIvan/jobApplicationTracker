@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api/client';
 import { useAuth } from '../hooks/useAuth.jsx';
+import ThemeSelect from '../components/ThemeSelect.jsx';
 
 const FIELDS = [
   { key: 'firstName', label: 'First name' },
@@ -82,6 +83,7 @@ export default function ProfilePage() {
             <h1 className="brand">Profile</h1>
           </div>
           <div className="topbar-right">
+            <ThemeSelect />
             <Link className="btn" to="/">
               ← Board
             </Link>
