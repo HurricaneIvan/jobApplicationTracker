@@ -34,10 +34,10 @@
     "default_title": "Job Application Tracker"
   },
 
-  "_comment_externally_connectable": "TODO: replace http://localhost:5173/* with the deployed web-app origin. The web app calls chrome.runtime.sendMessage(EXTENSION_ID, {type:'SET_JWT', jwt}) after login to bridge the JWT into the extension. http://localhost:5173/* is the local Vite dev server.",
+  "_comment_externally_connectable": "http://localhost/* is the local Vite dev server (Chrome match patterns do NOT support ports, so the :5173 is intentionally omitted — it matches localhost on any port). The web app calls chrome.runtime.sendMessage(EXTENSION_ID, {type:'SET_JWT', jwt}) after login to bridge the JWT into the extension. For production, add the deployed web-app origin (e.g. https://app.example.com/*) to this matches list.",
   "externally_connectable": {
     "matches": [
-      "http://localhost:5173/*"
+      "http://localhost/*"
     ]
   },
 
