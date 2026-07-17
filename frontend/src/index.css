@@ -608,24 +608,18 @@ textarea {
 .chip-doc {
   background: #0891b2;
 }
+.tile-clickable {
+  cursor: pointer;
+}
+/* Interactive controls inside the clickable tile keep their normal cursor and don't
+   trigger expand/collapse (handled in JS via a closest() check). */
+.tile-clickable textarea,
+.tile-clickable input,
+.tile-clickable select {
+  cursor: auto;
+}
 .tile-expanded {
   outline: 2px solid rgba(37, 99, 235, 0.25);
-}
-.tile-titlebtn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  text-align: left;
-  color: var(--text);
-  min-width: 0;
-}
-.tile-caret {
-  color: var(--muted);
-  font-size: 11px;
 }
 .tile-field {
   display: flex;
@@ -643,13 +637,6 @@ textarea {
 }
 .tile-field .btn {
   align-self: flex-start;
-}
-.tile-subid {
-  font-size: 11px;
-  color: var(--muted);
-}
-.tile-subid code {
-  font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
 }
 .btn-danger {
   border-color: #f3b4b4;

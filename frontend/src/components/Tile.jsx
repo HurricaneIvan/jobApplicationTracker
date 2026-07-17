@@ -182,18 +182,21 @@ export default function Tile({ tile, onChanged, onError }) {
   const showStage = tile.bucket === 'in_progress';
   const stageBadge = showStage && tile.stage ? STAGE_LABELS[tile.stage] : null;
 
+  // Clicking the tile toggles expand — but never when the click lands on an interactive
+  // control (buttons, links, form fields), so those keep working normally.
+  function onCardClick(e) {
+    if (e.target.closest('button, a, select, textarea, input, label')) return;
+    setExpanded((v) => !v);
+  }
+
   return (
-    <article className={`tile${busy ? ' tile-busy' : ''}${expanded ? ' tile-expanded' : ''}`}>
+    <article
+      className={`tile tile-clickable${busy ? ' tile-busy' : ''}${expanded ? ' tile-expanded' : ''}`}
+      onClick={onCardClick}
+      title={expanded ? 'Click to collapse' : 'Click to expand'}
+    >
       <header className="tile-head">
-        <button
-          className="tile-titlebtn"
-          onClick={() => setExpanded((v) => !v)}
-          title={expanded ? 'Collapse' : 'Expand to view / edit'}
-          aria-expanded={expanded}
-        >
-          <span className="tile-caret">{expanded ? '▾' : '▸'}</span>
-          <h3 className="tile-title">{tile.jobTitle || 'Untitled role'}</h3>
-        </button>
+        <h3 className="tile-title">{tile.jobTitle || 'Untitled role'}</h3>
         {expanded ? (
           <button className="icon-btn" title="Close" onClick={() => setExpanded(false)} disabled={busy}>
             ×
@@ -209,13 +212,13 @@ export default function Tile({ tile, onChanged, onError }) {
       </div>
 
       <div className="tile-meta">
+        <span>Job id: {tile.externalJobId || '—'}</span>
         <span>Applied: {formatDate(tile.dateApplied)}</span>
         {tile.hasDocument && <span className="chip chip-doc">Doc</span>}
         {tile.archived && <span className="chip chip-archived">Archived</span>}
-        {!expanded && stageBadge && null}
       </div>
 
-      <div className="tile-row" onClick={(e) => e.stopPropagation()}>
+      <div className="tile-row">
         <label className="tile-status">
           <span>Status</span>
           <select value={tile.bucket} onChange={(e) => changeStatus(e.target.value)} disabled={busy}>
@@ -240,51 +243,54 @@ export default function Tile({ tile, onChanged, onError }) {
         )}
       </div>
 
+      {/* Company blurb only shows in the expanded view. */}
       {expanded && (
-        <>
-          {tile.externalJobId && (
-            <div className="tile-subid">
-              Portal job id: <code>{tile.externalJobId}</code>
-            </div>
-          )}
+        <div className="tile-field">
+          <label>
+            <span>About the company</span>
+            <textarea
+              rows={4}
+              value={companyDesc}
+              placeholder="A few sentences about the company…"
+              onChange={(e) => {
+                setCompanyDesc(e.target.value);
+                setDescDirty(true);
+              }}
+            />
+          </label>
+          <button className="btn btn-small" onClick={saveDescription} disabled={savingDesc || !descDirty}>
+            {savingDesc ? 'Saving…' : 'Save description'}
+          </button>
+        </div>
+      )}
 
-          <div className="tile-field">
-            <label>
-              <span>About the company</span>
-              <textarea
-                rows={4}
-                value={companyDesc}
-                placeholder="A few sentences about the company…"
-                onChange={(e) => {
-                  setCompanyDesc(e.target.value);
-                  setDescDirty(true);
-                }}
-              />
-            </label>
-            <button className="btn btn-small" onClick={saveDescription} disabled={savingDesc || !descDirty}>
-              {savingDesc ? 'Saving…' : 'Save description'}
-            </button>
-          </div>
+      {/* Notes stay on the small tile (like the original); expanding just gives more room. */}
+      <div className="tile-notes">
+        <label>
+          <span>Notes</span>
+          <textarea
+            rows={expanded ? 6 : 2}
+            value={notes}
+            placeholder="Add notes…"
+            onChange={(e) => {
+              setNotes(e.target.value);
+              setNotesDirty(true);
+            }}
+          />
+        </label>
+        <button className="btn btn-small" onClick={saveNotes} disabled={savingNotes || !notesDirty}>
+          {savingNotes ? 'Saving…' : 'Save notes'}
+        </button>
+      </div>
 
-          <div className="tile-notes">
-            <label>
-              <span>Notes</span>
-              <textarea
-                rows={5}
-                value={notes}
-                placeholder="Add notes…"
-                onChange={(e) => {
-                  setNotes(e.target.value);
-                  setNotesDirty(true);
-                }}
-              />
-            </label>
-            <button className="btn btn-small" onClick={saveNotes} disabled={savingNotes || !notesDirty}>
-              {savingNotes ? 'Saving…' : 'Save notes'}
-            </button>
-          </div>
-
-          <footer className="tile-actions">
+      <footer className="tile-actions">
+        {tile.jobUrl && (
+          <a className="btn btn-small btn-link" href={tile.jobUrl} target="_blank" rel="noopener noreferrer">
+            View posting
+          </a>
+        )}
+        {expanded && (
+          <>
             {tile.hasDocument ? (
               <button className="btn btn-small" onClick={handleDownload} disabled={busy}>
                 Download doc
@@ -297,18 +303,13 @@ export default function Tile({ tile, onChanged, onError }) {
             <button className="btn btn-small" onClick={handleSavePdf} disabled={busy} title="Generate a PDF copy and attach it to this tile">
               Save PDF copy
             </button>
-            <input ref={fileInputRef} type="file" hidden onChange={handleFileSelected} />
-            {tile.jobUrl && (
-              <a className="btn btn-small btn-link" href={tile.jobUrl} target="_blank" rel="noopener noreferrer">
-                View posting
-              </a>
-            )}
             <button className="btn btn-small btn-danger" onClick={handleDelete} disabled={busy}>
               Delete
             </button>
-          </footer>
-        </>
-      )}
+          </>
+        )}
+        <input ref={fileInputRef} type="file" hidden onChange={handleFileSelected} />
+      </footer>
     </article>
   );
 }
