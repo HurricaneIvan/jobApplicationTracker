@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import { api, getTokens, isAuthenticated, setUnauthorizedHandler } from '../api/client';
+import { api, getTokens, isAuthenticated, setUnauthorizedHandler, syncExtensionAuth } from '../api/client';
 
 const AuthContext = createContext(null);
 
@@ -10,6 +10,13 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     setUnauthorizedHandler(() => setTokensState(null));
     return () => setUnauthorizedHandler(null);
+  }, []);
+
+  // On load, mirror an existing session to the extension. A plain page load fires no
+  // setTokens/clearTokens, so without this an already-authenticated user would have to
+  // log out and back in before the extension receives the token.
+  useEffect(() => {
+    syncExtensionAuth();
   }, []);
 
   const value = useMemo(() => {

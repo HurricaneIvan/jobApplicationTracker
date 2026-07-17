@@ -49,6 +49,19 @@ export function isAuthenticated() {
   return !!(t && t.accessToken);
 }
 
+// Re-mirror the currently stored auth state to the extension. setTokens/clearTokens
+// already push on login/signup/refresh/logout, but a plain page load with an existing
+// session fires none of those — call this on app startup so an already-authenticated
+// user's token reaches the extension without having to log out and back in.
+export function syncExtensionAuth() {
+  const tokens = getTokens();
+  if (tokens && tokens.accessToken) {
+    pushJwtToExtension(tokens.accessToken);
+  } else {
+    clearJwtInExtension();
+  }
+}
+
 // Hook so the app can react to a hard 401 (e.g. redirect to /login).
 // App.jsx sets this; the client calls it after a failed refresh.
 let onUnauthorized = null;
