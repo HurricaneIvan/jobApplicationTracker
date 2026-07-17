@@ -34,6 +34,7 @@ export default function Tile({ tile, onChanged, onError }) {
   const [descDirty, setDescDirty] = useState(false);
   const [savingDesc, setSavingDesc] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [dragging, setDragging] = useState(false);
   const fileInputRef = useRef(null);
 
   // Keep local editable state in sync when the tile is refetched from the server.
@@ -189,11 +190,32 @@ export default function Tile({ tile, onChanged, onError }) {
     setExpanded((v) => !v);
   }
 
+  // Drag the tile to another column to change its status. Cancel the drag when it starts
+  // on an interactive control so text selection / dropdowns keep working.
+  function onDragStart(e) {
+    if (e.target.closest('button, a, select, textarea, input, label')) {
+      e.preventDefault();
+      return;
+    }
+    e.dataTransfer.setData('application/x-app-id', tile.applicationId);
+    e.dataTransfer.setData('text/plain', tile.applicationId);
+    e.dataTransfer.setData('application/x-bucket', tile.bucket);
+    e.dataTransfer.effectAllowed = 'move';
+    setDragging(true);
+  }
+
+  function onDragEnd() {
+    setDragging(false);
+  }
+
   return (
     <article
-      className={`tile tile-clickable${busy ? ' tile-busy' : ''}${expanded ? ' tile-expanded' : ''}`}
+      className={`tile tile-clickable${busy ? ' tile-busy' : ''}${expanded ? ' tile-expanded' : ''}${dragging ? ' tile-dragging' : ''}`}
+      draggable
+      onDragStart={onDragStart}
+      onDragEnd={onDragEnd}
       onClick={onCardClick}
-      title={expanded ? 'Click to collapse' : 'Click to expand'}
+      title={expanded ? 'Click to collapse' : 'Click to expand · drag to move'}
     >
       <header className="tile-head">
         <h3 className="tile-title">{tile.jobTitle || 'Untitled role'}</h3>

@@ -327,6 +327,21 @@ textarea {
   border: 1px dashed var(--border);
   border-radius: 8px;
 }
+/* Drag-and-drop: highlight the column under the pointer while dragging a tile. */
+.column-dragover {
+  background: #e0e7ff;
+  border-color: var(--primary);
+  box-shadow: inset 0 0 0 2px rgba(37, 99, 235, 0.3);
+}
+.tile-dragging {
+  opacity: 0.45;
+}
+.tile-clickable[draggable='true'] {
+  cursor: grab;
+}
+.tile-clickable[draggable='true']:active {
+  cursor: grabbing;
+}
 
 /* ---------- Tile card ---------- */
 
