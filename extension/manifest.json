@@ -29,9 +29,19 @@
     }
   ],
 
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Job Application Tracker"
+    "default_title": "Job Application Tracker",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png"
+    }
   },
 
   "_comment_externally_connectable": "http://localhost/* is the local Vite dev server (Chrome match patterns do NOT support ports, so the :5173 is intentionally omitted — it matches localhost on any port). The web app calls chrome.runtime.sendMessage(EXTENSION_ID, {type:'SET_JWT', jwt}) after login to bridge the JWT into the extension. For production, add the deployed web-app origin (e.g. https://app.example.com/*) to this matches list.",
@@ -41,5 +51,5 @@
     ]
   },
 
-  "_comment_icons": "Icons are optional for local development. To ship, add PNGs and an \"icons\" key, e.g. \"icons\": { \"128\": \"icons/icon128.png\" } and an \"action.default_icon\"."
+  "_comment_icons": "Squirrel logo PNGs live in icons/ (16/32/48/128). Chrome toolbar icons must be raster PNG (not SVG); icons/squirrel.svg is the vector source."
 }

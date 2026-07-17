@@ -203,9 +203,24 @@ textarea {
   flex-wrap: wrap;
   margin-bottom: 16px;
 }
+.brand-wrap {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.brand-logo {
+  display: block;
+  border-radius: 6px;
+  flex: 0 0 auto;
+}
 .brand {
   font-size: 18px;
   margin: 0;
+}
+.auth-logo {
+  display: block;
+  margin: 0 auto 2px;
+  border-radius: 12px;
 }
 .topbar-right {
   display: flex;

@@ -1,0 +1,52 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="globe" cx="0.4" cy="0.32" r="0.85">
+      <stop offset="0" stop-color="#6d7bff"/>
+      <stop offset="0.55" stop-color="#3a2a8f"/>
+      <stop offset="1" stop-color="#180f3a"/>
+    </radialGradient>
+    <linearGradient id="fur" x1="0.15" y1="0" x2="0.85" y2="1">
+      <stop offset="0" stop-color="#ffe95e"/>
+      <stop offset="0.34" stop-color="#ff9f1c"/>
+      <stop offset="0.66" stop-color="#f5402c"/>
+      <stop offset="1" stop-color="#c21575"/>
+    </linearGradient>
+    <linearGradient id="fur2" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffb43a"/>
+      <stop offset="0.6" stop-color="#f5522b"/>
+      <stop offset="1" stop-color="#d31771"/>
+    </linearGradient>
+  </defs>
+
+  <!-- globe -->
+  <circle cx="32" cy="32" r="30" fill="url(#globe)"/>
+
+  <!-- big bushy tail sweeping up the left and over the top -->
+  <path d="M30 56
+           C14 55 6 42 8 28
+           C10 15 22 7 34 8
+           C28 12 22 18 22 28
+           C22 40 28 50 38 52
+           C35 55 33 56 30 56 Z" fill="url(#fur)"/>
+  <!-- flame tip curling over the top toward the right -->
+  <path d="M33 8 C44 6 52 12 53 22 C48 16 40 15 34 19 C31 14 31 10 33 8 Z" fill="url(#fur2)"/>
+
+  <!-- body curled at the lower right, overlapping the tail base so the fur reads as
+       one continuous mass hugging the globe -->
+  <path d="M27 55
+           C43 58 54 48 53 36
+           C52 29 47 25 40 27
+           C45 33 44 42 37 46
+           C32 49 29 51 27 55 Z" fill="url(#fur)"/>
+
+  <!-- head -->
+  <circle cx="43" cy="26" r="9" fill="url(#fur2)"/>
+  <!-- ear -->
+  <path d="M46 15 L53 16 L50 24 Z" fill="url(#fur2)"/>
+  <!-- snout -->
+  <circle cx="50" cy="30" r="3.6" fill="#ffcf6b"/>
+
+  <!-- eye + nose -->
+  <circle cx="46" cy="25" r="1.9" fill="#20123a"/>
+  <circle cx="52.6" cy="30" r="1.3" fill="#20123a"/>
+</svg>
