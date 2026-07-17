@@ -7,6 +7,13 @@ const SORT_OPTIONS = [
   { value: 'status', label: 'Status' },
 ];
 
+const STATUS_LABELS = {
+  applied: 'Applied',
+  in_progress: 'In Progress',
+  complete: 'Complete',
+  archived: 'Archived',
+};
+
 // refreshKey: bump to force a refetch after board mutations.
 // The sidebar endpoint already excludes archived tiles — do not re-add them.
 export default function Sidebar({ collapsed, onToggle, refreshKey }) {
@@ -166,7 +173,7 @@ function SidebarItem({ it, hideCompany }) {
       <div className="si-title">{it.jobTitle || 'Untitled role'}</div>
       {!hideCompany && <div className="si-company">{it.company || 'Unknown company'}</div>}
       <div className="si-meta">
-        <span className={`chip chip-${it.bucket}`}>{it.bucket}</span>
+        <span className={`chip chip-${it.bucket}`}>{STATUS_LABELS[it.bucket] || it.bucket}</span>
         {it.bucket === 'in_progress' && it.stage && <span className="chip chip-stage">{it.stage}</span>}
         {it.portalName && <span className="si-portal">{it.portalName}</span>}
       </div>

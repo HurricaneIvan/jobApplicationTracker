@@ -16,6 +16,12 @@ const STAGE_OPTIONS = [
 ];
 
 const STAGE_LABELS = { assessment: 'Assessment', interviewing: 'Interviewing' };
+const STATUS_LABELS = {
+  applied: 'Applied',
+  in_progress: 'In Progress',
+  complete: 'Complete',
+  archived: 'Archived',
+};
 
 function formatDate(value) {
   if (!value) return '—';
@@ -219,13 +225,16 @@ export default function Tile({ tile, onChanged, onError }) {
     >
       <header className="tile-head">
         <h3 className="tile-title">{tile.jobTitle || 'Untitled role'}</h3>
-        {expanded ? (
-          <button className="icon-btn" title="Close" onClick={() => setExpanded(false)} disabled={busy}>
-            ×
-          </button>
-        ) : (
-          stageBadge && <span className="chip chip-stage">{stageBadge}</span>
-        )}
+        <div className="tile-head-right">
+          {stageBadge && <span className="chip chip-stage">{stageBadge}</span>}
+          {/* Status lozenge — reflects the current column and updates when the status changes. */}
+          <span className={`chip chip-${tile.bucket}`}>{STATUS_LABELS[tile.bucket] || tile.bucket}</span>
+          {expanded && (
+            <button className="icon-btn" title="Close" onClick={() => setExpanded(false)} disabled={busy}>
+              ×
+            </button>
+          )}
+        </div>
       </header>
 
       <div className="tile-company">
@@ -234,10 +243,9 @@ export default function Tile({ tile, onChanged, onError }) {
       </div>
 
       <div className="tile-meta">
-        <span>Job id: {tile.externalJobId || '—'}</span>
-        <span>Applied: {formatDate(tile.dateApplied)}</span>
+        <div className="tile-metaline">Job id: {tile.externalJobId || '—'}</div>
+        <div className="tile-metaline">Applied: {formatDate(tile.dateApplied)}</div>
         {tile.hasDocument && <span className="chip chip-doc">Doc</span>}
-        {tile.archived && <span className="chip chip-archived">Archived</span>}
       </div>
 
       <div className="tile-row">
