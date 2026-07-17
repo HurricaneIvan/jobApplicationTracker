@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { api } from '../api/client';
 import { useAuth } from '../hooks/useAuth.jsx';
 import ThemeSelect from '../components/ThemeSelect.jsx';
+import Brand from '../components/Brand.jsx';
 
 const FIELDS = [
   { key: 'firstName', label: 'First name' },
@@ -80,7 +81,7 @@ export default function ProfilePage() {
       <main className="board-main">
         <header className="topbar">
           <div className="topbar-left">
-            <h1 className="brand">Profile</h1>
+            <Brand title="Profile" />
           </div>
           <div className="topbar-right">
             <ThemeSelect />

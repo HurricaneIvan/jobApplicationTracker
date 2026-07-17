@@ -46,6 +46,7 @@ export default function AuthPage() {
   return (
     <div className="auth-wrap">
       <form className="auth-card" onSubmit={handleSubmit}>
+        <img className="auth-logo" src="/squirrel.svg" alt="" width="56" height="56" />
         <h1 className="auth-title">Job Application Tracker</h1>
         <p className="auth-sub">{isLogin ? 'Log in to your account' : 'Create an account'}</p>
 

@@ -5,6 +5,7 @@ import { useAuth } from '../hooks/useAuth.jsx';
 import Tile from '../components/Tile.jsx';
 import Sidebar from '../components/Sidebar.jsx';
 import ThemeSelect from '../components/ThemeSelect.jsx';
+import Brand from '../components/Brand.jsx';
 
 const COLUMNS = [
   { key: 'applied', title: 'Applied', bucket: 'applied' },
@@ -90,7 +91,7 @@ export default function BoardPage() {
       <main className="board-main">
         <header className="topbar">
           <div className="topbar-left">
-            <h1 className="brand">Job Application Tracker</h1>
+            <Brand />
           </div>
           <div className="topbar-right">
             <ThemeSelect />
