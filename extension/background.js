@@ -321,6 +321,12 @@ chrome.runtime.onMessageExternal.addListener((msg, sender, sendResponse) => {
       sendResponse({ ok: true });
       return;
     }
+    // Revoke on logout / hard 401 in the web app.
+    if (msg && msg.type === 'CLEAR_JWT') {
+      await storageSet({ jwt: null });
+      sendResponse({ ok: true });
+      return;
+    }
     if (msg && msg.type === 'GET_JWT_STATUS') {
       const jwt = await getJwt();
       sendResponse({ authenticated: !!jwt });

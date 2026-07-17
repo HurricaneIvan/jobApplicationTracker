@@ -7,6 +7,8 @@
 //
 // All traffic goes through the gateway at VITE_API_BASE, base path /api/v1.
 
+import { pushJwtToExtension, clearJwtInExtension } from './extensionBridge';
+
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8080';
 const BASE_PATH = '/api/v1';
 
@@ -28,13 +30,18 @@ export function getTokens() {
 export function setTokens(tokens) {
   if (!tokens) {
     localStorage.removeItem(TOKENS_KEY);
+    clearJwtInExtension();
     return;
   }
   localStorage.setItem(TOKENS_KEY, JSON.stringify(tokens));
+  // Mirror the fresh access token into the extension. This is the single choke point
+  // for login, signup, and token refresh, so the extension always has a current token.
+  pushJwtToExtension(tokens.accessToken);
 }
 
 export function clearTokens() {
   localStorage.removeItem(TOKENS_KEY);
+  clearJwtInExtension();
 }
 
 export function isAuthenticated() {
