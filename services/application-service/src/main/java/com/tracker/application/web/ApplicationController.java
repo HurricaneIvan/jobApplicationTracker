@@ -5,6 +5,7 @@ import com.tracker.application.dto.ApplicationDtos.BoardResponse;
 import com.tracker.application.dto.ApplicationDtos.CreateApplicationRequest;
 import com.tracker.application.dto.ApplicationDtos.UpdateApplicationRequest;
 import com.tracker.application.dto.ApplicationDtos.UpdateNotesRequest;
+import com.tracker.application.dto.ApplicationDtos.UpdateStageRequest;
 import com.tracker.application.dto.ApplicationDtos.UpdateStatusRequest;
 import com.tracker.application.security.UserContext;
 import com.tracker.application.service.ApplicationService;
@@ -63,6 +64,13 @@ public class ApplicationController {
     public ApplicationResponse updateNotes(@PathVariable String applicationId,
                                            @RequestBody UpdateNotesRequest req) {
         return service.updateNotes(UserContext.getUserId(), applicationId, req.notes());
+    }
+
+    /** Set/clear the In-Progress sub-stage (assessment | interviewing | none). */
+    @PatchMapping("/{applicationId}/stage")
+    public ApplicationResponse updateStage(@PathVariable String applicationId,
+                                           @RequestBody UpdateStageRequest req) {
+        return service.updateStage(UserContext.getUserId(), applicationId, req.stageEnum());
     }
 
     @PatchMapping("/{applicationId}")

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { api } from '../api/client';
 
 const SORT_OPTIONS = [
@@ -6,6 +6,13 @@ const SORT_OPTIONS = [
   { value: 'title', label: 'Title' },
   { value: 'status', label: 'Status' },
 ];
+
+const STATUS_LABELS = {
+  applied: 'Applied',
+  in_progress: 'In Progress',
+  complete: 'Complete',
+  archived: 'Archived',
+};
 
 // refreshKey: bump to force a refetch after board mutations.
 // The sidebar endpoint already excludes archived tiles — do not re-add them.
@@ -15,6 +22,11 @@ export default function Sidebar({ collapsed, onToggle, refreshKey }) {
   const [order, setOrder] = useState('desc');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  // Advanced filter panel.
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [groupByCompany, setGroupByCompany] = useState(false);
+  const [companyFilter, setCompanyFilter] = useState('all');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -32,6 +44,29 @@ export default function Sidebar({ collapsed, onToggle, refreshKey }) {
   useEffect(() => {
     if (!collapsed) load();
   }, [load, collapsed, refreshKey]);
+
+  const companies = useMemo(() => {
+    const set = new Set();
+    for (const it of items) set.add(it.company || 'Unknown company');
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [items]);
+
+  const visible = useMemo(() => {
+    if (companyFilter === 'all') return items;
+    return items.filter((it) => (it.company || 'Unknown company') === companyFilter);
+  }, [items, companyFilter]);
+
+  // When grouping, bucket the visible items by company (preserving current sort within a group).
+  const groups = useMemo(() => {
+    if (!groupByCompany) return null;
+    const map = new Map();
+    for (const it of visible) {
+      const key = it.company || 'Unknown company';
+      if (!map.has(key)) map.set(key, []);
+      map.get(key).push(it);
+    }
+    return Array.from(map.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+  }, [visible, groupByCompany]);
 
   return (
     <aside className={`sidebar${collapsed ? ' sidebar-collapsed' : ''}`}>
@@ -67,26 +102,81 @@ export default function Sidebar({ collapsed, onToggle, refreshKey }) {
             </button>
           </div>
 
+          <button
+            className="btn btn-small sidebar-advanced-toggle"
+            onClick={() => setShowAdvanced((v) => !v)}
+            aria-expanded={showAdvanced}
+          >
+            {showAdvanced ? '▾' : '▸'} Advanced filter
+          </button>
+
+          {showAdvanced && (
+            <div className="sidebar-advanced">
+              <label className="adv-check">
+                <input
+                  type="checkbox"
+                  checked={groupByCompany}
+                  onChange={(e) => setGroupByCompany(e.target.checked)}
+                />
+                <span>Group by company</span>
+              </label>
+              <label>
+                <span>Company</span>
+                <select value={companyFilter} onChange={(e) => setCompanyFilter(e.target.value)}>
+                  <option value="all">All companies</option>
+                  {companies.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+          )}
+
           {loading && <div className="muted">Loading…</div>}
           {error && <div className="auth-error">{error}</div>}
-          {!loading && !error && items.length === 0 && (
+          {!loading && !error && visible.length === 0 && (
             <div className="muted">No applications yet.</div>
           )}
 
-          <ul className="sidebar-list">
-            {items.map((it) => (
-              <li key={it.applicationId} className="sidebar-item">
-                <div className="si-title">{it.jobTitle || 'Untitled role'}</div>
-                <div className="si-company">{it.company || 'Unknown company'}</div>
-                <div className="si-meta">
-                  <span className={`chip chip-${it.bucket}`}>{it.bucket}</span>
-                  {it.portalName && <span className="si-portal">{it.portalName}</span>}
+          {!loading && !error && groups ? (
+            groups.map(([company, list]) => (
+              <div key={company} className="sidebar-group">
+                <div className="sidebar-group-head">
+                  <span className="sg-name">{company}</span>
+                  <span className="count">{list.length}</span>
                 </div>
-              </li>
-            ))}
-          </ul>
+                <ul className="sidebar-list">
+                  {list.map((it) => (
+                    <SidebarItem key={it.applicationId} it={it} hideCompany />
+                  ))}
+                </ul>
+              </div>
+            ))
+          ) : (
+            <ul className="sidebar-list">
+              {visible.map((it) => (
+                <SidebarItem key={it.applicationId} it={it} />
+              ))}
+            </ul>
+          )}
         </div>
       )}
     </aside>
+  );
+}
+
+function SidebarItem({ it, hideCompany }) {
+  return (
+    <li className="sidebar-item">
+      <div className="si-title">{it.jobTitle || 'Untitled role'}</div>
+      {!hideCompany && <div className="si-company">{it.company || 'Unknown company'}</div>}
+      <div className="si-meta">
+        <span className={`chip chip-${it.bucket}`}>{STATUS_LABELS[it.bucket] || it.bucket}</span>
+        {it.bucket === 'in_progress' && it.stage && <span className="chip chip-stage">{it.stage}</span>}
+        {it.portalName && <span className="si-portal">{it.portalName}</span>}
+      </div>
+    </li>
   );
 }

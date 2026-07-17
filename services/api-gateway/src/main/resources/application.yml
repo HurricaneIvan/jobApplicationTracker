@@ -39,6 +39,19 @@ spring:
                 redis-rate-limiter.replenishRate: ${RATE_LIMIT_REPLENISH_RATE:2}
                 redis-rate-limiter.burstCapacity: ${RATE_LIMIT_BURST_CAPACITY:120}
 
+        # ---- profile (auth-service): JWT REQUIRED — not under /auth/**, so the global
+        #      filter enforces the token and injects X-User-Id for the profile lookup ----
+        - id: profile
+          uri: ${AUTH_SERVICE_URI:http://localhost:8081}
+          predicates:
+            - Path=/api/v1/profile/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                key-resolver: "#{@userKeyResolver}"
+                redis-rate-limiter.replenishRate: ${RATE_LIMIT_REPLENISH_RATE:2}
+                redis-rate-limiter.burstCapacity: ${RATE_LIMIT_BURST_CAPACITY:120}
+
         # ---- application-service: JWT required (validated by the global filter) ----
         - id: application-service
           uri: ${APPLICATION_SERVICE_URI:http://localhost:8082}

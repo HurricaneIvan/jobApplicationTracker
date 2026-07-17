@@ -78,14 +78,65 @@ function extractExternalJobId(url) {
   return null;
 }
 
-/** Best-effort job title from metadata, then DOM. */
+/**
+ * Strip site/company noise off a raw title so we keep the job name itself.
+ * Handles: leading "(3) " notification counts, LinkedIn's "Company hiring Title in Location",
+ * and trailing " - Company" / " | LinkedIn" separator segments that match the company or a
+ * known portal name.
+ */
+function cleanJobTitle(raw, company, siteName) {
+  if (!raw) return '';
+  let t = raw.replace(/\s+/g, ' ').trim();
+
+  // LinkedIn tab title: "Acme Corp hiring Software Developer 2 in Toronto" -> "Software Developer 2"
+  const hiring = t.match(/\bhiring\s+(.+?)(?:\s+in\s+.+)?$/i);
+  if (hiring && hiring[1]) t = hiring[1].trim();
+
+  // Leading notification count e.g. "(3) Software Developer 2"
+  t = t.replace(/^\(\d+\)\s*/, '');
+
+  const noise = [
+    company, siteName,
+    'LinkedIn', 'Indeed', 'Indeed.com', 'Glassdoor', 'Greenhouse', 'Lever',
+    'Workday', 'myWorkdayJobs', 'SmartRecruiters', 'Monster', 'Wellfound',
+    'Ashby', 'ZipRecruiter', 'Job Application'
+  ].filter(Boolean);
+
+  // Repeatedly drop a trailing "<sep> <segment>" when the segment is site/company noise.
+  const sepRe = /\s*[|–—·:-]\s*([^|–—·:-]+)$/;
+  for (let i = 0; i < 3; i++) {
+    const m = t.match(sepRe);
+    if (!m) break;
+    const tail = m[1].trim().toLowerCase();
+    const isNoise = noise.some((n) => tail.includes(n.toLowerCase()) || n.toLowerCase().includes(tail));
+    if (!isNoise) break;
+    t = t.slice(0, t.length - m[0].length).trim();
+  }
+  return t.trim();
+}
+
+/**
+ * Best-effort job title. Prefer the actual on-page posting heading (h1 / job-title
+ * elements) — those hold just the role name. Only fall back to og:title / the browser
+ * tab title, which usually carry site/company suffixes, and clean those off.
+ */
 function extractJobTitle() {
-  return (
-    metaProperty('og:title') ||
-    metaName('title') ||
-    firstText(['h1', '[class*="job-title"]', '[class*="jobtitle"]', '[class*="title"]']) ||
-    (document.title || '').trim()
-  );
+  const company = extractCompany();
+  const siteName = metaProperty('og:site_name');
+
+  const domTitle = firstText([
+    'h1[class*="job-title"]',
+    'h1[class*="jobtitle"]',
+    '[class*="job-title"]',
+    '[class*="jobtitle"]',
+    '[data-testid*="jobTitle"]',
+    '[data-testid*="job-title"]',
+    'h1',
+  ]);
+  if (domTitle) return cleanJobTitle(domTitle, company, siteName);
+
+  const meta = metaProperty('og:title') || metaName('title') || (document.title || '').trim();
+  return cleanJobTitle(meta, company, siteName);
 }
 
 /** Best-effort company / site name from metadata, then DOM. */

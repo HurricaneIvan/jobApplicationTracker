@@ -1,14 +1,16 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { api, ApiError } from '../api/client';
 import { useAuth } from '../hooks/useAuth.jsx';
 import Tile from '../components/Tile.jsx';
 import Sidebar from '../components/Sidebar.jsx';
+import ThemeSelect from '../components/ThemeSelect.jsx';
 
 const COLUMNS = [
-  { key: 'applied', title: 'Applied' },
-  { key: 'inProgress', title: 'In Progress' },
-  { key: 'complete', title: 'Complete' },
-  { key: 'archived', title: 'Archived' },
+  { key: 'applied', title: 'Applied', bucket: 'applied' },
+  { key: 'inProgress', title: 'In Progress', bucket: 'in_progress' },
+  { key: 'complete', title: 'Complete', bucket: 'complete' },
+  { key: 'archived', title: 'Archived', bucket: 'archived' },
 ];
 
 const EMPTY_BOARD = { applied: [], inProgress: [], complete: [], archived: [] };
@@ -23,8 +25,8 @@ export default function BoardPage() {
   const [banner, setBanner] = useState(null); // transient error from tile actions
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
-  const [portalFilter, setPortalFilter] = useState('all');
   const [showCreate, setShowCreate] = useState(false);
+  const [dragOverKey, setDragOverKey] = useState(null);
 
   const loadBoard = useCallback(async () => {
     setError(null);
@@ -64,26 +66,24 @@ export default function BoardPage() {
     handleTileError._t = window.setTimeout(() => setBanner(null), 5000);
   }, []);
 
-  // Portal filter options derived from the portal registry plus whatever
-  // portal names actually appear on tiles (in case a tile references an
-  // unlisted portal).
-  const portalOptions = useMemo(() => {
-    const names = new Set();
-    for (const col of Object.values(board)) {
-      for (const t of col || []) {
-        if (t.portalName) names.add(t.portalName);
+  // Drag-and-drop: dropping a tile on a column moves it to that column's bucket.
+  const handleDrop = useCallback(
+    async (e, targetBucket) => {
+      e.preventDefault();
+      setDragOverKey(null);
+      const id =
+        e.dataTransfer.getData('application/x-app-id') || e.dataTransfer.getData('text/plain');
+      const from = e.dataTransfer.getData('application/x-bucket');
+      if (!id || from === targetBucket) return;
+      try {
+        await api.updateStatus(id, targetBucket);
+        refetch();
+      } catch (err) {
+        handleTileError(err.message || 'Could not move the application.');
       }
-    }
-    for (const p of portals) {
-      if (p.displayName) names.add(p.displayName);
-    }
-    return Array.from(names).sort();
-  }, [board, portals]);
-
-  function filterTiles(tiles) {
-    if (portalFilter === 'all') return tiles;
-    return (tiles || []).filter((t) => t.portalName === portalFilter);
-  }
+    },
+    [refetch, handleTileError],
+  );
 
   return (
     <div className={`app-shell${sidebarCollapsed ? ' sidebar-is-collapsed' : ''}`}>
@@ -93,20 +93,13 @@ export default function BoardPage() {
             <h1 className="brand">Job Application Tracker</h1>
           </div>
           <div className="topbar-right">
-            <label className="portal-filter">
-              <span>Portal</span>
-              <select value={portalFilter} onChange={(e) => setPortalFilter(e.target.value)}>
-                <option value="all">All portals</option>
-                {portalOptions.map((name) => (
-                  <option key={name} value={name}>
-                    {name}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <ThemeSelect />
             <button className="btn btn-primary" onClick={() => setShowCreate((s) => !s)}>
               {showCreate ? 'Close' : '+ New'}
             </button>
+            <Link className="btn" to="/profile">
+              Profile
+            </Link>
             <span className="user-email">{user && user.email}</span>
             <button className="btn" onClick={logout}>
               Log out
@@ -141,16 +134,29 @@ export default function BoardPage() {
         {!loading && !error && (
           <div className="board-columns">
             {COLUMNS.map((col) => {
-              const tiles = filterTiles(board[col.key]);
+              const tiles = board[col.key] || [];
               return (
-                <section key={col.key} className="column">
+                <section
+                  key={col.key}
+                  className={`column${dragOverKey === col.key ? ' column-dragover' : ''}`}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                    if (dragOverKey !== col.key) setDragOverKey(col.key);
+                  }}
+                  onDragLeave={(e) => {
+                    // Only clear when the pointer actually leaves the column, not its children.
+                    if (!e.currentTarget.contains(e.relatedTarget)) setDragOverKey(null);
+                  }}
+                  onDrop={(e) => handleDrop(e, col.bucket)}
+                >
                   <header className="column-head">
                     <h2>{col.title}</h2>
                     <span className="count">{tiles.length}</span>
                   </header>
                   <div className="column-body">
                     {tiles.length === 0 ? (
-                      <div className="column-empty">No applications</div>
+                      <div className="column-empty">Drag applications here</div>
                     ) : (
                       tiles.map((tile) => (
                         <Tile

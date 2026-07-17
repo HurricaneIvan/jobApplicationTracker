@@ -3,6 +3,7 @@ package com.tracker.application.service;
 import com.tracker.application.document.DocumentService;
 import com.tracker.application.domain.Application;
 import com.tracker.application.domain.Bucket;
+import com.tracker.application.domain.Stage;
 import com.tracker.application.dto.ApplicationDtos.ApplicationResponse;
 import com.tracker.application.dto.ApplicationDtos.BoardResponse;
 import com.tracker.application.dto.ApplicationDtos.CreateApplicationRequest;
@@ -54,6 +55,7 @@ public class ApplicationService {
         a.setCompany(req.company());
         a.setBucket(Bucket.APPLIED);
         a.setNotes(req.notes());
+        a.setCompanyDescription(placeholderDescription(req.company()));
         a.setDateApplied(req.dateApplied() != null ? req.dateApplied() : Instant.now());
         a.setArchived(false);
         a.setDescriptionSnapshot(req.descriptionSnapshot());
@@ -146,7 +148,20 @@ public class ApplicationService {
 
         a.setBucket(newBucket);
         a.setArchived(newBucket == Bucket.ARCHIVED);   // keep archived flag consistent with the column
+        if (newBucket != Bucket.IN_PROGRESS) {
+            a.setStage(null);                          // sub-stage only applies while In Progress
+        }
 
+        repo.save(a);
+        sidebarCache.invalidate(userId);
+        return ApplicationResponse.from(a);
+    }
+
+    // ------------------------------------------------------------------- stage
+    /** Set/clear the In-Progress sub-stage. A null stage clears it. */
+    public ApplicationResponse updateStage(String userId, String applicationId, Stage stage) {
+        Application a = load(userId, applicationId);
+        a.setStage(stage);
         repo.save(a);
         sidebarCache.invalidate(userId);
         return ApplicationResponse.from(a);
@@ -169,6 +184,7 @@ public class ApplicationService {
         if (req.jobUrl() != null) a.setJobUrl(req.jobUrl());
         if (req.externalJobId() != null) a.setExternalJobId(blankToNull(req.externalJobId()));
         if (req.notes() != null) a.setNotes(req.notes());
+        if (req.companyDescription() != null) a.setCompanyDescription(req.companyDescription());
         if (req.descriptionSnapshot() != null) a.setDescriptionSnapshot(req.descriptionSnapshot());
         repo.save(a);
         sidebarCache.invalidate(userId);
@@ -220,6 +236,14 @@ public class ApplicationService {
 
     private static String blankToNull(String s) {
         return (s == null || s.isBlank()) ? null : s;
+    }
+
+    /** Editable placeholder blurb seeded on create; the user replaces it manually. */
+    private static String placeholderDescription(String company) {
+        String name = (company == null || company.isBlank()) ? "this company" : company.trim();
+        return "Add 3–4 sentences about " + name
+                + " — what they do, their size/industry, and why you're interested. "
+                + "(Placeholder — edit me.)";
     }
 
     private static String safe(String s) {

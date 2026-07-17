@@ -34,9 +34,11 @@ public class Application {
     private String company;
 
     private Bucket bucket = Bucket.APPLIED;
+    private Stage stage;                    // nullable; sub-stage, only meaningful while IN_PROGRESS
 
     private String applicationCopyS3Key;   // nullable until a document is uploaded
     private String notes;
+    private String companyDescription;     // nullable; short blurb about the company (user-editable)
     private Instant dateApplied;
     private Instant completedAt;           // nullable; drives the 7-day archival clock
     private boolean archived = false;
@@ -75,11 +77,17 @@ public class Application {
     public Bucket getBucket() { return bucket; }
     public void setBucket(Bucket bucket) { this.bucket = bucket; }
 
+    public Stage getStage() { return stage; }
+    public void setStage(Stage stage) { this.stage = stage; }
+
     public String getApplicationCopyS3Key() { return applicationCopyS3Key; }
     public void setApplicationCopyS3Key(String applicationCopyS3Key) { this.applicationCopyS3Key = applicationCopyS3Key; }
 
     public String getNotes() { return notes; }
     public void setNotes(String notes) { this.notes = notes; }
+
+    public String getCompanyDescription() { return companyDescription; }
+    public void setCompanyDescription(String companyDescription) { this.companyDescription = companyDescription; }
 
     public Instant getDateApplied() { return dateApplied; }
     public void setDateApplied(Instant dateApplied) { this.dateApplied = dateApplied; }
