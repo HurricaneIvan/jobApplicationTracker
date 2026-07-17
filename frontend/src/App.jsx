@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth.jsx';
 import AuthPage from './pages/AuthPage.jsx';
 import BoardPage from './pages/BoardPage.jsx';
+import ProfilePage from './pages/ProfilePage.jsx';
 
 function RequireAuth({ children }) {
   const { isAuthed } = useAuth();
@@ -23,6 +24,14 @@ export default function App() {
         element={
           <RequireAuth>
             <BoardPage />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/profile"
+        element={
+          <RequireAuth>
+            <ProfilePage />
           </RequireAuth>
         }
       />

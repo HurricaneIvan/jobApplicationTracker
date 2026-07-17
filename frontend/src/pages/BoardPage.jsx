@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { api, ApiError } from '../api/client';
 import { useAuth } from '../hooks/useAuth.jsx';
 import Tile from '../components/Tile.jsx';
@@ -107,6 +108,9 @@ export default function BoardPage() {
             <button className="btn btn-primary" onClick={() => setShowCreate((s) => !s)}>
               {showCreate ? 'Close' : '+ New'}
             </button>
+            <Link className="btn" to="/profile">
+              Profile
+            </Link>
             <span className="user-email">{user && user.email}</span>
             <button className="btn" onClick={logout}>
               Log out

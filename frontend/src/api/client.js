@@ -219,6 +219,14 @@ export const api = {
     });
   },
 
+  updateStage(applicationId, stage) {
+    // stage in assessment | interviewing | null (null/'' clears it). Only meaningful for in_progress.
+    return request(`/applications/${applicationId}/stage`, {
+      method: 'PATCH',
+      body: { stage: stage || null },
+    });
+  },
+
   updateNotes(applicationId, notes) {
     return request(`/applications/${applicationId}/notes`, {
       method: 'PATCH',
@@ -265,6 +273,15 @@ export const api = {
   // ---- Portals ----
   listPortals() {
     return request('/portals');
+  },
+
+  // ---- Profile (Bearer required) ----
+  getProfile() {
+    return request('/profile');
+  },
+
+  updateProfile(payload) {
+    return request('/profile', { method: 'PUT', body: payload });
   },
 };
 

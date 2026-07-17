@@ -37,4 +37,24 @@ public final class AuthDtos {
             String userId,
             String email
     ) { }
+
+    /** GET /profile — the current user's account + profile. Email/id are read-only. */
+    public record ProfileResponse(
+            String userId,
+            String email,
+            String firstName,
+            String lastName,
+            String phone,
+            String location,
+            String headline
+    ) { }
+
+    /** PUT /profile — editable profile fields. Email and password are not changed here. */
+    public record UpdateProfileRequest(
+            @Size(max = 100) String firstName,
+            @Size(max = 100) String lastName,
+            @Size(max = 40) String phone,
+            @Size(max = 120) String location,
+            @Size(max = 200) String headline
+    ) { }
 }
