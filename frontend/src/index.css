@@ -217,21 +217,6 @@ textarea {
   color: var(--muted);
   font-size: 13px;
 }
-.portal-filter,
-.portal-filter select {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  width: auto;
-}
-.portal-filter > span {
-  color: var(--muted);
-  font-size: 13px;
-}
-.portal-filter select {
-  min-width: 130px;
-}
-
 .banner {
   padding: 8px 12px;
   border-radius: 6px;

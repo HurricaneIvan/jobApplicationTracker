@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api, ApiError } from '../api/client';
 import { useAuth } from '../hooks/useAuth.jsx';
@@ -25,7 +25,6 @@ export default function BoardPage() {
   const [banner, setBanner] = useState(null); // transient error from tile actions
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
-  const [portalFilter, setPortalFilter] = useState('all');
   const [showCreate, setShowCreate] = useState(false);
   const [dragOverKey, setDragOverKey] = useState(null);
 
@@ -86,27 +85,6 @@ export default function BoardPage() {
     [refetch, handleTileError],
   );
 
-  // Portal filter options derived from the portal registry plus whatever
-  // portal names actually appear on tiles (in case a tile references an
-  // unlisted portal).
-  const portalOptions = useMemo(() => {
-    const names = new Set();
-    for (const col of Object.values(board)) {
-      for (const t of col || []) {
-        if (t.portalName) names.add(t.portalName);
-      }
-    }
-    for (const p of portals) {
-      if (p.displayName) names.add(p.displayName);
-    }
-    return Array.from(names).sort();
-  }, [board, portals]);
-
-  function filterTiles(tiles) {
-    if (portalFilter === 'all') return tiles;
-    return (tiles || []).filter((t) => t.portalName === portalFilter);
-  }
-
   return (
     <div className={`app-shell${sidebarCollapsed ? ' sidebar-is-collapsed' : ''}`}>
       <main className="board-main">
@@ -115,17 +93,6 @@ export default function BoardPage() {
             <h1 className="brand">Job Application Tracker</h1>
           </div>
           <div className="topbar-right">
-            <label className="portal-filter">
-              <span>Portal</span>
-              <select value={portalFilter} onChange={(e) => setPortalFilter(e.target.value)}>
-                <option value="all">All portals</option>
-                {portalOptions.map((name) => (
-                  <option key={name} value={name}>
-                    {name}
-                  </option>
-                ))}
-              </select>
-            </label>
             <ThemeSelect />
             <button className="btn btn-primary" onClick={() => setShowCreate((s) => !s)}>
               {showCreate ? 'Close' : '+ New'}
@@ -167,7 +134,7 @@ export default function BoardPage() {
         {!loading && !error && (
           <div className="board-columns">
             {COLUMNS.map((col) => {
-              const tiles = filterTiles(board[col.key]);
+              const tiles = board[col.key] || [];
               return (
                 <section
                   key={col.key}
